@@ -112,7 +112,7 @@ const Message = ({ messageInfo, chatDetails }) => {
               </div>
             )}
 
-            <div className="px-2 max-w-60 break-words">
+            <div className="px-2 max-w-80 break-words">
               {isGroup && (
                 <p className="font-medium text-zinc-400">
                   {!isMyMessage && name}
