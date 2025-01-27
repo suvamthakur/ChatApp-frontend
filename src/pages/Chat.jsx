@@ -36,6 +36,7 @@ const Chat = () => {
   let WIDTH = window.innerWidth;
 
   useEffect(() => {
+    console.log("user: ", user);
     if (user != undefined) {
       if (user) {
         getProfile();
