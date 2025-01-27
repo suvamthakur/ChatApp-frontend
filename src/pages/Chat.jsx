@@ -36,12 +36,14 @@ const Chat = () => {
   let WIDTH = window.innerWidth;
 
   useEffect(() => {
-    if (!Cookies.get("token")) {
-      navigate("/login");
-    } else {
-      getProfile();
+    if (user != undefined) {
+      if (user) {
+        getProfile();
+      } else {
+        navigate("/login");
+      }
     }
-  }, []);
+  }, [user]);
 
   const [socket, setSocket] = useState(null);
   // Socket Connection
