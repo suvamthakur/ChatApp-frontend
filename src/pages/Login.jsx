@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import Cookies from "js-cookie";
 import toast from "react-hot-toast";
 
 const Login = () => {
@@ -22,16 +21,14 @@ const Login = () => {
   const password = useRef("");
 
   useEffect(() => {
-    if (Cookies.get("token")) {
-      getProfile()
-        .then(() => {
-          navigate("/chat");
-        })
-        .catch(() => {
-          // May be token has expired
-          navigate("/login");
-        });
-    }
+    getProfile()
+      .then(() => {
+        navigate("/chat");
+      })
+      .catch(() => {
+        // May be token doesn't exist or has expired
+        navigate("/login");
+      });
   }, []);
 
   const getProfile = async () => {

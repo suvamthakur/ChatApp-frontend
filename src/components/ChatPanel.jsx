@@ -59,11 +59,14 @@ const ChatPanel = ({ showCreateChatModal }) => {
   }, [searchChat]);
 
   const getChats = async () => {
+    console.log("called");
     try {
       const res = await axiosFetch(constants.GET_USER_CHATS);
+
+      console.log("chat: ", res.data.data);
       dispatch(addChats(res.data.data));
-    } catch {
-      toast.error("Unable to get chats");
+    } catch (err) {
+      console.log(err);
     }
   };
 

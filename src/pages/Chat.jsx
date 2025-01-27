@@ -3,7 +3,6 @@ import ChatPanel from "@/components/ChatPanel";
 import { axiosFetch } from "@/lib/axiosFetch";
 import { constants } from "@/lib/constants";
 import { addUser } from "@/store/userSlice";
-import Cookies from "js-cookie";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -36,15 +35,8 @@ const Chat = () => {
   let WIDTH = window.innerWidth;
 
   useEffect(() => {
-    console.log("user: ", user);
-    if (user != undefined) {
-      if (user) {
-        getProfile();
-      } else {
-        navigate("/login");
-      }
-    }
-  }, [user]);
+    getProfile();
+  }, []);
 
   const [socket, setSocket] = useState(null);
   // Socket Connection
@@ -141,37 +133,42 @@ const Chat = () => {
         console.log(res);
       }
     } catch (err) {
+      if (err.status == 401) {
+        navigate("/login");
+      }
       console.log(err);
     }
   };
 
   return (
-    <socketContext.Provider value={{ socket: socket }}>
-      <div
-        className={
-          "h-[100vh] w-[100vw] flex " +
-          (showCreateChatModal || isImageUpload
-            ? "blur pointer-events-none"
-            : "")
-        }
-      >
-        {((WIDTH < 640 && !activeChatId) || WIDTH > 640) && (
-          <div
-            className={
-              "w-[100vw] sm:w-[40vw] lg:w-[30vw] h-full p-3 bg-zinc-800"
-            }
-          >
-            <ChatPanel showCreateChatModal={showCreateChatModal} />
-          </div>
-        )}
+    user && (
+      <socketContext.Provider value={{ socket: socket }}>
+        <div
+          className={
+            "h-[100vh] w-[100vw] flex " +
+            (showCreateChatModal || isImageUpload
+              ? "blur pointer-events-none"
+              : "")
+          }
+        >
+          {((WIDTH < 640 && !activeChatId) || WIDTH > 640) && (
+            <div
+              className={
+                "w-[100vw] sm:w-[40vw] lg:w-[30vw] h-full p-3 bg-zinc-800"
+              }
+            >
+              <ChatPanel showCreateChatModal={showCreateChatModal} />
+            </div>
+          )}
 
-        {((WIDTH < 640 && activeChatId) || WIDTH > 640) && (
-          <div className="w-[100vw] sm:w-[60vw] lg:w-[70vw]">
-            <ChatContainer />
-          </div>
-        )}
-      </div>
-    </socketContext.Provider>
+          {((WIDTH < 640 && activeChatId) || WIDTH > 640) && (
+            <div className="w-[100vw] sm:w-[60vw] lg:w-[70vw]">
+              <ChatContainer />
+            </div>
+          )}
+        </div>
+      </socketContext.Provider>
+    )
   );
 };
 export default Chat;
