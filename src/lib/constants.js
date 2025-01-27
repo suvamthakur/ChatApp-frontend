@@ -4,6 +4,7 @@ export const constants = {
   // Auth
   SIGN_UP: "auth/signup",
   LOGIN: "auth/login",
+  LOGOUT: "auth/logout",
 
   // User
   GET_PROFILE: "user/profile",

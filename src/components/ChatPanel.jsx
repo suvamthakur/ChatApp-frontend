@@ -108,7 +108,6 @@ const ChatPanel = ({ showCreateChatModal }) => {
                   alt=""
                   className="w-full h-full object-cover rounded-full"
                 />
-                <FaEdit className="text-zinc-100 absolute bottom-0 right-0" />
               </div>
 
               <Popover open={showChatOptions} onOpenChange={setShowChatOptions}>
