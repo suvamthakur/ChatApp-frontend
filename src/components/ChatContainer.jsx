@@ -58,11 +58,16 @@ const ChatContainer = () => {
     }
   }, [activeChatId, allChats]);
 
+  // Scrolling the messages
   const containerRef = useRef(null);
   useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
-    }
+    const t = setTimeout(() => {
+      if (containerRef.current) {
+        containerRef.current.scrollTop = containerRef.current.scrollHeight;
+      }
+    }, 600);
+
+    return () => clearTimeout(t);
   }, [chatMessages, activeChatId]);
 
   const handleSendMessage = async () => {
