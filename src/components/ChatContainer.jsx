@@ -41,6 +41,7 @@ const ChatContainer = () => {
   const { reply } = useSelector((store) => store.message);
 
   const { socket } = useContext(socketContext);
+  const messageRef = useRef({});
 
   const inputFocus = useRef(null);
   useEffect(() => {
@@ -57,6 +58,11 @@ const ChatContainer = () => {
       inputFocus.current?.focus();
     }
   }, [activeChatId, allChats]);
+
+  // Focus input box while replying
+  useEffect(() => {
+    inputFocus.current?.focus();
+  }, [reply]);
 
   // Scrolling the messages
   const containerRef = useRef(null);
@@ -167,6 +173,21 @@ const ChatContainer = () => {
       toast.success("User has been unblocked");
     } catch (err) {
       toast.error(err?.response?.data?.msg);
+    }
+  };
+
+  const scrollMessage = (messageId) => {
+    const messageElement = messageRef.current[messageId];
+    if (messageElement) {
+      messageElement.scrollIntoView({ behavior: "smooth", block: "center" });
+
+      messageElement.style.backgroundColor = "#27272a";
+      messageElement.style.transition = "background-color 1s";
+
+      // Remove inline styling after 1 second
+      setTimeout(() => {
+        messageElement.style.backgroundColor = "";
+      }, 1000);
     }
   };
 
@@ -305,6 +326,8 @@ const ChatContainer = () => {
                 key={message._id}
                 messageInfo={message}
                 chatDetails={chatDetails}
+                ref={(el) => (messageRef.current[message._id] = el)} // Assign ref to each message
+                scrollMessage={scrollMessage}
               />
             ))}
           </div>
