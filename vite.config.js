@@ -12,5 +12,15 @@ export default defineConfig({
   },
   server: {
     historyApiFallback: true,
+    proxy: {
+      // Proxying all API requests to the backend over HTTP
+      "/api": {
+        target:
+          "http://chatapp-backend-env.eba-hdvjhcpm.ap-south-1.elasticbeanstalk.com",
+        changeOrigin: true,
+        secure: false, // since the backend is over HTTP
+        rewrite: (path) => path.replace(/^\/api/, ""), // optional: rewrite the API path if necessary
+      },
+    },
   },
 });
