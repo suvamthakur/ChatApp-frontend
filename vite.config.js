@@ -19,7 +19,7 @@ export default defineConfig({
           "http://chatapp-backend-env.eba-hdvjhcpm.ap-south-1.elasticbeanstalk.com",
         changeOrigin: true,
         secure: false, // since the backend is over HTTP
-        rewrite: (path) => path.replace(/^\/api/, ""), // optional: rewrite the API path if necessary
+        // rewrite: (path) => path.replace(/^\/api/, ""), // optional: rewrite the API path if necessary
       },
     },
   },
