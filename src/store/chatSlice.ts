@@ -1,11 +1,19 @@
+import { Chat, ChatMessage } from "@/types/store";
 import { createSlice } from "@reduxjs/toolkit";
+
+type ChatState = {
+  allChats: Chat[];
+  chatMessages: {
+    [chatId: string]: ChatMessage[];
+  };
+};
 
 const chatSlice = createSlice({
   name: "chats",
   initialState: {
     allChats: [],
     chatMessages: {}, // Messages
-  },
+  } as ChatState,
   reducers: {
     addChats: (state, action) => {
       state.allChats = action.payload;
@@ -140,23 +148,26 @@ const chatSlice = createSlice({
 
       // Find second last message of the chat
       const secondLastMessage = state.chatMessages[chatId].at(-1);
-      const { _id, name, content } = secondLastMessage;
 
-      state.allChats = state.allChats.map((chat) => {
-        if (chat._id == chatId) {
-          if (chat.lastMessage._id == messageId) {
-            return {
-              ...chat,
-              lastMessage: {
-                _id,
-                senderName: name,
-                content,
-              },
-            };
+      if (secondLastMessage) {
+        const { _id, name, content } = secondLastMessage;
+
+        state.allChats = state.allChats.map((chat) => {
+          if (chat._id == chatId) {
+            if (chat.lastMessage!._id == messageId) {
+              return {
+                ...chat,
+                lastMessage: {
+                  _id,
+                  senderName: name,
+                  content,
+                },
+              };
+            }
           }
-        }
-        return chat;
-      });
+          return chat;
+        });
+      }
     },
   },
 });

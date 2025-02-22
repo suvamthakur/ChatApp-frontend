@@ -10,6 +10,18 @@ import { IoClose } from "react-icons/io5";
 import { FaEdit } from "react-icons/fa";
 import socketContext from "@/lib/socketContext";
 import { addSingleChat } from "@/store/chatSlice";
+import { Chat, User } from "@/types/store";
+import { RootState } from "@/store/appStore";
+import { AxiosError } from "axios";
+
+type CreateChatModalProps = {
+  isExistingGroup?: boolean;
+  isCreateGroup?: boolean;
+  setIsCreateGroup?: Function;
+  allChats: Chat[];
+  currentChat?: Chat;
+  setShowChatModal: Function;
+};
 
 const CreateChatModal = ({
   isExistingGroup = false,
@@ -18,60 +30,77 @@ const CreateChatModal = ({
   allChats,
   currentChat,
   setShowChatModal,
-}) => {
+}: CreateChatModalProps) => {
   const dispatch = useDispatch();
-  const [existingUsers, setExistingUsers] = useState([]); // group
-  const [availableUsers, setAvailableUsers] = useState([]); // !group
+  const [existingUsers, setExistingUsers] = useState<Record<string, User>>({}); // group
+
+  const [availableUsers, setAvailableUsers] = useState<User[]>([]); // !group
   const [groupName, setGroupName] = useState("");
   const [preview, setPreview] = useState(
     "https://cdn-icons-png.flaticon.com/256/2893/2893570.png"
   );
-  const [selectedImage, setSelectedImage] = useState("");
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
 
-  const [selectedUsers, setSelectedUsers] = useState([]); // Used to add user to create a group
-  const currentUser = useSelector((store) => store.user);
+  const [selectedUsers, setSelectedUsers] = useState<User[]>([]); // Used to add user to create a group
+  const currentUser = useSelector((store: RootState) => store.user);
 
-  const { socket } = useContext(socketContext);
+  let { socket } = useContext(socketContext);
+  socket = socket!;
+
+  console.log("existingUsers: ", existingUsers);
 
   useEffect(() => {
     // Store existing users
-    let existingConnections = {};
+    let existingConnections: Record<string, User> = {};
+
     for (let chat of allChats) {
       if (!chat.isGroup) {
         const { users } = chat;
 
         for (let user of users) {
-          if (user._id != currentUser._id) {
+          if (user._id != currentUser!._id) {
             existingConnections = { ...existingConnections, [user._id]: user };
           }
         }
       }
     }
     if (isExistingGroup != undefined) {
-      if (isExistingGroup) {
+      if (isExistingGroup && currentChat) {
+        console.log("currentChat.users: ", currentChat.users);
         // To add new members into the group
-        let existingMembers = {};
+        let existingMembers: Record<string, User> = {};
+
         for (let user of currentChat.users) {
           existingMembers = { ...existingMembers, [user._id]: user };
         }
-        // console.log(existingMembers);
-        // set existing members(Add user into the group)
-        console.log(existingMembers);
-        getAllUsers(existingMembers);
+
+        console.log("existingMembers: ", existingMembers);
+        console.log("existingConnections: ", existingConnections);
+
+        const availableUsers = Object.keys(existingConnections)
+          .map((userId) => {
+            if (!Object.hasOwn(existingMembers, userId)) {
+              return existingConnections[userId];
+            }
+          })
+          .filter((user) => user != undefined);
+
+        setAvailableUsers(availableUsers);
       } else {
         // set existing conenections (creating a group)
         setExistingUsers(existingConnections);
 
+        console.log("hi");
         // For adding a connection
         !isCreateGroup && getAllUsers(existingConnections);
       }
     }
     return () => {
-      isCreateGroup && setIsCreateGroup(false);
+      isCreateGroup && setIsCreateGroup?.(false);
     };
   }, []);
 
-  const handleAddUser = async (user) => {
+  const handleAddUser = async (user: User) => {
     try {
       const formData = new FormData();
       formData.append("users", JSON.stringify([user]));
@@ -101,7 +130,7 @@ const CreateChatModal = ({
     try {
       const formData = new FormData();
       formData.append("users", JSON.stringify(selectedUsers));
-      formData.append("isGroup", true);
+      formData.append("isGroup", "true");
       formData.append("groupName", groupName);
       if (selectedImage) {
         formData.append("groupImage", selectedImage);
@@ -128,22 +157,26 @@ const CreateChatModal = ({
 
   const handleAddMemberToGroup = async () => {
     try {
-      await axiosFetch.patch(constants.ADD_USER + `/${currentChat._id}`, {
+      await axiosFetch.patch(constants.ADD_USER + `/${currentChat!._id}`, {
         users: selectedUsers,
       });
 
       const newUsers = selectedUsers;
-      socket.emit("add_user_to_group", currentChat._id, newUsers);
+      socket.emit("add_user_to_group", currentChat!._id, newUsers);
 
       dispatch(setShowCreateChatModal(false));
       setShowChatModal(false);
     } catch (err) {
-      toast.error(err?.response?.data?.msg);
+      if (err instanceof AxiosError) {
+        toast.error(err?.response?.data?.msg);
+      } else {
+        toast.error("Something went worng");
+      }
     }
   };
 
-  const handleImageUpload = async (e) => {
-    const imageFile = e.target.files[0];
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const imageFile = e.target.files?.[0];
 
     if (imageFile && imageFile.type.startsWith("image/")) {
       const blobUrl = URL.createObjectURL(imageFile);
@@ -154,10 +187,11 @@ const CreateChatModal = ({
     }
   };
 
-  const getAllUsers = async (existingConnections) => {
+  const getAllUsers = async (existingConnections: typeof existingUsers) => {
+    console.log("existingUsers: ", existingConnections);
     try {
       const res = await axiosFetch(constants.GET_ALL_USERS);
-      const allUsers = res?.data?.data;
+      const allUsers: User[] = res?.data?.data;
 
       const finalUsers = allUsers.filter((user) => {
         if (!existingConnections[user._id]) return true;
@@ -165,7 +199,11 @@ const CreateChatModal = ({
       console.log("final user: ", finalUsers);
       setAvailableUsers(finalUsers);
     } catch (err) {
-      toast.error(err?.response?.data?.msg);
+      if (err instanceof AxiosError) {
+        toast.error(err?.response?.data?.msg);
+      } else {
+        toast.error("Something went wrong");
+      }
     }
   };
 
@@ -245,7 +283,7 @@ const CreateChatModal = ({
             ? Object.values(existingUsers).filter(
                 (user) => !selectedUsers.includes(user) // create a group
               )
-            : // this filter is for adding member to the group only
+            : // this filter is for adding member to the group and connecting with new user
               availableUsers.filter((user) => !selectedUsers.includes(user))
           ).map((user) => (
             <div
@@ -317,7 +355,7 @@ const CreateChatModal = ({
         <IoIosCloseCircleOutline className="text-3xl text-zinc-300 cursor-pointer" />
       </div>
     </div>,
-    document.getElementById("root")
+    document.getElementById("root")!
   );
 };
 export default CreateChatModal;

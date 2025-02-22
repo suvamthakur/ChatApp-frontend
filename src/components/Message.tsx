@@ -8,8 +8,17 @@ import { constants } from "@/lib/constants";
 import toast from "react-hot-toast";
 import { FaFilePdf } from "react-icons/fa";
 import socketContext from "@/lib/socketContext";
+import { Chat, ChatMessage, User } from "@/types/store";
+import { RootState } from "@/store/appStore";
+import { AxiosError } from "axios";
 
-const Message = forwardRef(
+type MessageProps = {
+  messageInfo: ChatMessage;
+  chatDetails: Chat;
+  scrollMessage: Function;
+};
+
+const Message = forwardRef<HTMLDivElement, MessageProps>(
   ({ messageInfo, chatDetails, scrollMessage }, ref) => {
     const { senderId, photoURL, content, name, replyTo, attachment } =
       messageInfo;
@@ -20,13 +29,15 @@ const Message = forwardRef(
     const [showArrow, setShowArrow] = useState(false);
     const [showModal, setShowModal] = useState(false);
 
-    const user = useSelector((store) => store.user);
-    const activeChatId = useSelector((store) => store.app.activeChatId);
-
-    const { socket } = useContext(socketContext);
+    const user = useSelector((store: RootState) => store.user);
+    const activeChatId = useSelector(
+      (store: RootState) => store.app.activeChatId
+    );
+    let { socket } = useContext(socketContext);
+    socket = socket!;
 
     useEffect(() => {
-      if (senderId == user._id) {
+      if (user && senderId == user._id) {
         setIsMyMessage(true);
       }
 
@@ -50,12 +61,17 @@ const Message = forwardRef(
 
         toast.success("Message deleted");
       } catch (err) {
-        toast.error(err?.response?.data?.msg);
+        if (err instanceof AxiosError) {
+          toast.error(err?.response?.data?.msg);
+        } else {
+          toast.error("Something went wrong");
+        }
       }
     };
 
     return (
-      ((user && content.length > 0) || attachment) && (
+      user &&
+      (content.length > 0 || attachment) && (
         <div className="my-2" ref={ref}>
           <div className={"flex " + (isMyMessage ? "justify-end" : "")}>
             {!isMyMessage && isGroup && (
@@ -105,7 +121,6 @@ const Message = forwardRef(
                             <video
                               src={replyTo.attachment.url}
                               className="w-full h-full object-cover"
-                              alt=""
                             />
                           )}
 
@@ -140,12 +155,7 @@ const Message = forwardRef(
                       </a>
                     )}
                     {attachment.type.includes("video") && (
-                      <video
-                        src={attachment.url}
-                        controls
-                        className="w-full"
-                        alt=""
-                      />
+                      <video src={attachment.url} controls className="w-full" />
                     )}
 
                     {attachment.type.includes("pdf") && (
@@ -219,10 +229,5 @@ const Message = forwardRef(
     );
   }
 );
-
-Message.propTypes = {
-  messageInfo: PropTypes.object,
-  chatDetails: PropTypes.object,
-};
 
 export default Message;

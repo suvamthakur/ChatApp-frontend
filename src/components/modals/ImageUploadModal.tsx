@@ -3,27 +3,35 @@ import { constants } from "@/lib/constants";
 import socketContext from "@/lib/socketContext";
 import { setIsImageUpload } from "@/store/appSlice";
 import { addUser, removeUser } from "@/store/userSlice";
+import { AxiosError } from "axios";
 import { useContext, useState } from "react";
 import ReactDOM from "react-dom";
 import toast from "react-hot-toast";
 import { FaEdit } from "react-icons/fa";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+
+type ImageUploadProps = {
+  isGroup?: boolean;
+  chatId?: string;
+  image?: string;
+  setShowImageUpload: Function;
+};
 
 const ImageUploadModal = ({
   isGroup = false,
   chatId,
   image,
   setShowImageUpload,
-}) => {
+}: ImageUploadProps) => {
   const dispatch = useDispatch();
   const [preview, setPreview] = useState(image);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
 
-  const { socket } = useContext(socketContext);
+  let { socket } = useContext(socketContext);
+  socket = socket!;
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
 
     if (file && file.type.startsWith("image/")) {
       const blobUrl = URL.createObjectURL(file);
@@ -37,7 +45,7 @@ const ImageUploadModal = ({
   const updateChatImage = async () => {
     try {
       const formData = new FormData();
-      formData.append("groupImage", selectedImage);
+      selectedImage && formData.append("groupImage", selectedImage);
 
       const chatData = await toast.promise(
         axiosFetch.patch(constants.UPDATE_CHAT_IMAGE + `/${chatId}`, formData),
@@ -50,7 +58,11 @@ const ImageUploadModal = ({
       socket.emit("update_chat", chatData?.data?.data);
     } catch (err) {
       console.log(err);
-      toast.error(err?.response?.data?.msg || "Something went wrong");
+      if (err instanceof AxiosError) {
+        toast.error(err?.response?.data?.msg);
+      } else {
+        toast.error("Something went wrong");
+      }
     } finally {
       dispatch(setIsImageUpload(false));
       setShowImageUpload(false);
@@ -60,7 +72,7 @@ const ImageUploadModal = ({
   const updateUserImage = async () => {
     try {
       const formData = new FormData();
-      formData.append("userImage", selectedImage);
+      selectedImage && formData.append("userImage", selectedImage);
 
       const res = await toast.promise(
         axiosFetch.patch(constants.UPDATE_PROFILE, formData),
@@ -73,8 +85,11 @@ const ImageUploadModal = ({
       dispatch(addUser(res?.data?.data));
       socket.emit("profile_update", res?.data?.data);
     } catch (err) {
-      console.log(err);
-      toast.error(err?.response?.data?.msg || "Something went wrong");
+      if (err instanceof AxiosError) {
+        toast.error(err?.response?.data?.msg || "Something went wrong");
+      } else {
+        toast.error("Something went wrong");
+      }
     } finally {
       dispatch(setIsImageUpload(false));
       setShowImageUpload(false);
@@ -83,7 +98,7 @@ const ImageUploadModal = ({
 
   const handleLogout = async () => {
     try {
-      const res = await axiosFetch.post(constants.LOGOUT);
+      await axiosFetch.post(constants.LOGOUT);
       dispatch(removeUser());
       window.location.href = "/login";
     } catch (err) {
@@ -143,7 +158,7 @@ const ImageUploadModal = ({
         Logout
       </button>
     </div>,
-    document.getElementById("root")
+    document.getElementById("root")!
   );
 };
 export default ImageUploadModal;

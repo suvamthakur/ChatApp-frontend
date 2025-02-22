@@ -1,4 +1,3 @@
-// import { FaPlus } from "react-icons/fa6";
 import { IoIosSearch } from "react-icons/io";
 import {
   Popover,
@@ -19,11 +18,15 @@ import {
   setShowCreateChatModal,
 } from "@/store/appSlice";
 import CreateChatModal from "./modals/CreateChatModal";
-import PropTypes from "prop-types";
-import { FaEdit } from "react-icons/fa";
 import ImageUploadModal from "./modals/ImageUploadModal";
+import { RootState } from "@/store/appStore";
+import { Chat, User } from "@/types/store";
 
-const ChatPanel = ({ showCreateChatModal }) => {
+type ChatPanelProps = {
+  showCreateChatModal: boolean;
+};
+
+const ChatPanel = ({ showCreateChatModal }: ChatPanelProps) => {
   const dispatch = useDispatch();
   const [isCreateGroup, setIsCreateGroup] = useState(false);
   const [showChatOptions, setShowChatOptions] = useState(false);
@@ -32,12 +35,16 @@ const ChatPanel = ({ showCreateChatModal }) => {
 
   const [searchChat, setSearchChat] = useState("");
 
-  const allChats = useSelector((store) => store.chats.allChats);
-  const [chats, setChats] = useState([]);
+  const allChats = useSelector((store: RootState) => store.chats.allChats);
+  const [chats, setChats] = useState<Chat[]>([]);
 
-  const chatMessages = useSelector((store) => store.chats.chatMessages);
-  const user = useSelector((store) => store.user);
-  const { isGetChats, isImageUpload } = useSelector((store) => store.app);
+  const chatMessages = useSelector(
+    (store: RootState) => store.chats.chatMessages
+  );
+  const user = useSelector((store: RootState) => store.user);
+  const { isGetChats, isImageUpload } = useSelector(
+    (store: RootState) => store.app
+  );
 
   useEffect(() => {
     if (isGetChats) {
@@ -70,7 +77,7 @@ const ChatPanel = ({ showCreateChatModal }) => {
     }
   };
 
-  const handleChatMessages = async (chatId) => {
+  const handleChatMessages = async (chatId: string) => {
     try {
       if (!chatMessages[chatId]) {
         const res = await axiosFetch.get(constants.GET_MESSAGES + `/${chatId}`);
@@ -233,7 +240,4 @@ const ChatPanel = ({ showCreateChatModal }) => {
   );
 };
 
-ChatPanel.propTypes = {
-  showCreateChatModal: PropTypes.bool,
-};
 export default ChatPanel;

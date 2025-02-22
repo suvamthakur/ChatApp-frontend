@@ -1,4 +1,13 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { Socket } from "socket.io-client";
+
+type AppSliceState = {
+  activeChatId: string | null;
+  showCreateChatModal: boolean;
+  isImageUpload: boolean;
+  isGetChats: boolean;
+  sokcet: Socket | null;
+};
 
 const appSlice = createSlice({
   name: "app",
@@ -8,7 +17,8 @@ const appSlice = createSlice({
     isImageUpload: false,
     isGetChats: true,
     sokcet: null,
-  },
+  } as AppSliceState,
+
   reducers: {
     setActiveChatId: (state, action) => {
       state.activeChatId = action.payload;

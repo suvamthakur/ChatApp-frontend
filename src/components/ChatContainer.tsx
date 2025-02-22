@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ChatController from "./ChatController";
 import { BsThreeDotsVertical } from "react-icons/bs";
@@ -23,27 +23,36 @@ import { FaFilePdf } from "react-icons/fa";
 import socketContext from "@/lib/socketContext";
 import { IoArrowBack } from "react-icons/io5";
 import { setActiveChatId } from "@/store/appSlice";
+import { RootState } from "@/store/appStore";
+import { Chat } from "@/types/store";
+import { AxiosError } from "axios";
 
 const ChatContainer = () => {
   let WIDTH = window.innerWidth;
 
   const dispatch = useDispatch();
-  const [chatDetails, setChatDetails] = useState(null);
+  const [chatDetails, setChatDetails] = useState<Chat | null>(null);
   const [isControllerActive, setIsControllerActive] = useState(false);
   const [text, setText] = useState("");
   const [isOption, setIsOption] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const activeChatId = useSelector((store) => store.app.activeChatId);
-  const allChats = useSelector((store) => store.chats.allChats);
-  const user = useSelector((store) => store.user);
-  const chatMessages = useSelector((store) => store.chats.chatMessages);
-  const { reply } = useSelector((store) => store.message);
+  const activeChatId = useSelector(
+    (store: RootState) => store.app.activeChatId
+  );
+  const allChats = useSelector((store: RootState) => store.chats.allChats);
+  const user = useSelector((store: RootState) => store.user);
+  const chatMessages = useSelector(
+    (store: RootState) => store.chats.chatMessages
+  );
+  const { reply } = useSelector((store: RootState) => store.message);
 
-  const { socket } = useContext(socketContext);
-  const messageRef = useRef({});
+  let { socket } = useContext(socketContext);
+  socket = socket!;
 
-  const inputFocus = useRef(null);
+  const messageRef = useRef<Record<string, HTMLDivElement | null>>({});
+
+  const inputFocus = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     if (activeChatId && allChats) {
       // Find the correct chat details
@@ -65,7 +74,7 @@ const ChatContainer = () => {
   }, [reply]);
 
   // Scrolling the messages
-  const containerRef = useRef(null);
+  const containerRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     const t = setTimeout(() => {
       if (containerRef.current) {
@@ -77,7 +86,7 @@ const ChatContainer = () => {
   }, [chatMessages, activeChatId]);
 
   const handleSendMessage = async () => {
-    if (!selectedFile && !text.length > 0) return;
+    if (!selectedFile && text.length === 0) return;
 
     setText("");
     selectedFile && setSelectedFile(null);
@@ -90,7 +99,7 @@ const ChatContainer = () => {
     try {
       const formData = new FormData();
       formData.append("content", text);
-      formData.append("file", selectedFile);
+      selectedFile && formData.append("file", selectedFile);
 
       if (reply) {
         formData.append(
@@ -105,8 +114,6 @@ const ChatContainer = () => {
         );
       }
 
-      console.log(formData);
-
       const message = await axiosFetch.post(
         constants.CREATE_MESSAGE + `/${activeChatId}`,
         formData
@@ -120,8 +127,10 @@ const ChatContainer = () => {
     }
   };
 
-  const handleFileUpload = (e) => {
-    let file = e.target.files[0];
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let file = e.target.files?.[0];
+    if (!file) return;
+
     if (file.size > 41943040) {
       toast.error("File size must be less than 40mb");
       return;
@@ -129,42 +138,54 @@ const ChatContainer = () => {
     setSelectedFile(file);
   };
 
-  const handleExitGroup = async (chatId) => {
+  const handleExitGroup = async (chatId: string) => {
     try {
       await axiosFetch.patch(constants.EXIT_CHAT + `/${chatId}`);
-      socket.emit("exit_group", chatId, user._id);
+      socket.emit("exit_group", chatId, user!._id);
 
       toast.success("You have left the group");
     } catch (err) {
-      toast.error(err?.response?.data?.msg);
+      if (err instanceof AxiosError) {
+        toast.error(err?.response?.data?.msg);
+      } else {
+        toast.error("Something went wrong");
+      }
     }
   };
 
-  const handleDeleteGroup = async (chatId) => {
+  const handleDeleteGroup = async (chatId: string) => {
     try {
       await axiosFetch.delete(constants.DELETE_CHAT + `/${chatId}`);
       socket.emit("delete_group", chatId);
 
       toast.success("Group deleted successfully");
     } catch (err) {
-      toast.error(err?.response?.data?.msg);
+      if (err instanceof AxiosError) {
+        toast.error(err?.response?.data?.msg);
+      } else {
+        toast.error("Something went wrong");
+      }
     }
   };
 
-  const handleBlockUser = async (chatId) => {
+  const handleBlockUser = async (chatId: string) => {
     try {
       await axiosFetch.patch(constants.TOGGLE_BLOCK + `/${chatId}`);
 
-      let blockedBy = user._id;
+      let blockedBy = user!._id;
       socket.emit("block_user", blockedBy, chatId);
 
       toast.success("User has been blocked");
     } catch (err) {
-      toast.error(err?.response?.data?.msg);
+      if (err instanceof AxiosError) {
+        toast.error(err?.response?.data?.msg);
+      } else {
+        toast.error("Something went wrong");
+      }
     }
   };
 
-  const handleUnblockUser = async (chatId) => {
+  const handleUnblockUser = async (chatId: string) => {
     try {
       await axiosFetch.patch(constants.TOGGLE_BLOCK + `/${chatId}`);
 
@@ -172,11 +193,15 @@ const ChatContainer = () => {
 
       toast.success("User has been unblocked");
     } catch (err) {
-      toast.error(err?.response?.data?.msg);
+      if (err instanceof AxiosError) {
+        toast.error(err?.response?.data?.msg);
+      } else {
+        toast.error("Something went wrong");
+      }
     }
   };
 
-  const scrollMessage = (messageId) => {
+  const scrollMessage = (messageId: string) => {
     const messageElement = messageRef.current[messageId];
     if (messageElement) {
       messageElement.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -349,7 +374,7 @@ const ChatContainer = () => {
               value={text}
               onChange={(e) => setText(e.target.value)}
               className="w-full bg-zinc-900 text-zinc-100 px-4 py-2 rounded outline-none border-none resize-none overflow-y-auto"
-              onInput={(e) => {
+              onInput={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
                 e.target.style.height = "auto"; // Reset height to auto for recalculation
                 e.target.style.height = `${Math.min(
                   e.target.scrollHeight,
@@ -404,7 +429,6 @@ const ChatContainer = () => {
                                   <video
                                     src={reply.attachment.url}
                                     className="w-full h-full object-cover"
-                                    alt=""
                                   />
                                 )}
 
@@ -447,7 +471,6 @@ const ChatContainer = () => {
                       <div className="rounded flex items-center flex-grow">
                         <video
                           src={URL.createObjectURL(selectedFile)}
-                          alt=""
                           className="rounded w-12 h-12 object-cover"
                         />
                         <span className="text-zinc-200 font-medium ml-3">
