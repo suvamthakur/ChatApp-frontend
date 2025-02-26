@@ -54,18 +54,22 @@ const Login = () => {
       setErrorMessage("Please enter all the details");
       return;
     }
-    setErrorMessage(formValidation(userName, userEmail, userPassword));
+    const error = formValidation(userName, userEmail, userPassword);
+    setErrorMessage(error);
 
-    if (!errorMessage) {
-      if (isLogin) {
-        handleLogin(userEmail, userPassword);
-      } else {
-        if (!userName) {
-          setErrorMessage("Please enter your name");
-          return;
-        }
-        handleSingup(userName, userEmail, userPassword);
+    if (error) {
+      toast.error(error);
+      return;
+    }
+
+    if (isLogin) {
+      handleLogin(userEmail, userPassword);
+    } else {
+      if (!userName) {
+        setErrorMessage("Please enter your name");
+        return;
       }
+      handleSingup(userName, userEmail, userPassword);
     }
   };
 
