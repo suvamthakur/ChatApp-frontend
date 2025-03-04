@@ -6,7 +6,7 @@ import { addUser } from "@/store/userSlice";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 import socketContext from "@/lib/socketContext";
 import {
   addMessage,
@@ -21,15 +21,20 @@ import {
   updateUserInChat,
 } from "@/store/chatSlice";
 import { setActiveChatId, setIsGetChats } from "@/store/appSlice";
+import { RootState } from "@/store/appStore";
+import { User } from "@/types/store";
+import { AxiosError } from "axios";
 
 const Chat = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const user = useSelector((store) => store.user);
-  const activeChatId = useSelector((store) => store.app.activeChatId);
+  const user = useSelector((store: RootState) => store.user);
+  const activeChatId = useSelector(
+    (store: RootState) => store.app.activeChatId
+  );
   const { showCreateChatModal, isImageUpload } = useSelector(
-    (store) => store.app
+    (store: RootState) => store.app
   );
 
   let WIDTH = window.innerWidth;
@@ -38,7 +43,7 @@ const Chat = () => {
     getProfile();
   }, []);
 
-  const [socket, setSocket] = useState(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
   // Socket Connection
   useEffect(() => {
     if (user?._id) {
@@ -48,7 +53,9 @@ const Chat = () => {
       setSocket(socket);
     }
 
-    return () => socket?.close();
+    return () => {
+      socket?.close(); // Ensure the correct reference is used
+    };
   }, [user?._id]);
 
   // Listening to events
@@ -60,8 +67,8 @@ const Chat = () => {
       });
 
       // New user Added into a group
-      socket.on("new_user_added", (chatId, newUsers) => {
-        if (newUsers.some((newUser) => newUser._id == user._id)) {
+      socket.on("new_user_added", (chatId, newUsers: [User]) => {
+        if (newUsers.some((newUser) => newUser._id == user!._id)) {
           dispatch(setIsGetChats(true));
         } else {
           dispatch(addNewUsersIntoChat({ newUsers, chatId }));
@@ -70,7 +77,7 @@ const Chat = () => {
 
       // Removed a user / exit group
       socket.on("user_removed", (chatId, removedUserId) => {
-        if (removedUserId == user._id) {
+        if (removedUserId == user!._id) {
           dispatch(exitChat(chatId));
           dispatch(setActiveChatId(null));
         } else {
@@ -133,8 +140,10 @@ const Chat = () => {
         console.log(res);
       }
     } catch (err) {
-      if (err.status == 401) {
-        navigate("/login");
+      if (err instanceof AxiosError) {
+        if (err.status == 401) {
+          navigate("/login");
+        }
       }
       console.log(err);
     }

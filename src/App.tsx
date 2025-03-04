@@ -1,9 +1,9 @@
 import "./App.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import Login from "./pages/Login";
-import Chat from "./pages/Chat";
+import Login from "./pages/Login.tsx";
+import Chat from "./pages/Chat.tsx";
 import { Provider } from "react-redux";
-import appStore from "./store/appStore";
+import appStore from "./store/appStore.ts";
 import { Toaster } from "react-hot-toast";
 
 const App = () => {

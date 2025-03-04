@@ -21,8 +21,19 @@ import toast from "react-hot-toast";
 import { FaEdit } from "react-icons/fa";
 import ImageUploadModal from "./modals/ImageUploadModal";
 import socketContext from "@/lib/socketContext";
+import { RootState } from "@/store/appStore";
+import { Chat, User } from "@/types/store";
+import { AxiosError } from "axios";
 
-const ChatController = ({ chatDetails, setIsControllerActive }) => {
+type ChatControllerProps = {
+  chatDetails: Chat;
+  setIsControllerActive: Function;
+};
+
+const ChatController = ({
+  chatDetails,
+  setIsControllerActive,
+}: ChatControllerProps) => {
   const { groupImage, groupName, users, admin } = chatDetails;
 
   const dispatch = useDispatch();
@@ -30,23 +41,30 @@ const ChatController = ({ chatDetails, setIsControllerActive }) => {
   const [showImageUpload, setShowImageUpload] = useState(false);
   const [showChatModal, setShowChatModal] = useState(false);
 
-  const currentUser = useSelector((store) => store.user);
-  const allChats = useSelector((store) => store.chats.allChats);
+  const currentUser = useSelector((store: RootState) => store.user);
+  const allChats = useSelector((store: RootState) => store.chats.allChats);
   const { showCreateChatModal, isImageUpload } = useSelector(
-    (store) => store.app
+    (store: RootState) => store.app
   );
-  const activeChatId = useSelector((store) => store.app.activeChatId);
+  const activeChatId = useSelector(
+    (store: RootState) => store.app.activeChatId
+  );
 
-  const { socket } = useContext(socketContext);
+  let { socket } = useContext(socketContext);
+  socket = socket!;
 
   const handleExitGroup = async () => {
     try {
       await axiosFetch.patch(constants.EXIT_CHAT + `/${activeChatId}`);
-      socket.emit("exit_group", activeChatId, currentUser._id);
+      socket.emit("exit_group", activeChatId, currentUser!._id);
 
       toast.success("You have left the group");
     } catch (err) {
-      toast.error(err?.response?.data?.msg);
+      if (err instanceof AxiosError) {
+        toast.error(err?.response?.data?.msg);
+      } else {
+        toast.error("Something went wrong");
+      }
     }
   };
 
@@ -57,11 +75,15 @@ const ChatController = ({ chatDetails, setIsControllerActive }) => {
 
       toast.success("Group deleted successfully");
     } catch (err) {
-      toast.error(err?.response?.data?.msg);
+      if (err instanceof AxiosError) {
+        toast.error(err?.response?.data?.msg);
+      } else {
+        toast.error("Something went wrong");
+      }
     }
   };
 
-  const handleRemoveUser = async (userId) => {
+  const handleRemoveUser = async (userId: string) => {
     try {
       await axiosFetch.patch(constants.REMOVE_USER + `/${activeChatId}`, {
         userId,
@@ -72,7 +94,11 @@ const ChatController = ({ chatDetails, setIsControllerActive }) => {
 
       toast.success("Removed successfully");
     } catch (err) {
-      toast.error(err?.response?.data?.msg);
+      if (err instanceof AxiosError) {
+        toast.error(err?.response?.data?.msg);
+      } else {
+        toast.error("Something went wrong");
+      }
     }
   };
 
@@ -248,18 +274,4 @@ const ChatController = ({ chatDetails, setIsControllerActive }) => {
   );
 };
 
-// Validate chatDetails object
-ChatController.propTypes = {
-  chatDetails: PropTypes.shape({
-    groupImage: PropTypes.string,
-    groupName: PropTypes.string,
-    users: PropTypes.array,
-    admin: PropTypes.string,
-    _id: PropTypes.string,
-  }),
-};
-
-ChatController.propTypes = {
-  setIsControllerActive: PropTypes.func,
-};
 export default ChatController;

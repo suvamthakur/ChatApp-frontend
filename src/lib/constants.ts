@@ -25,4 +25,5 @@ export const constants = {
   // Message
   CREATE_MESSAGE: "message/create",
   DELETE_MESSAGE: "message/delete",
+  GET_AI_RESPONSE: "message/ai",
 };

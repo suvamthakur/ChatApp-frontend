@@ -9,16 +9,17 @@ import { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { AxiosError } from "axios";
 
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
-  const [errorMessage, setErrorMessage] = useState(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const name = useRef("");
-  const email = useRef("");
-  const password = useRef("");
+  const name = useRef<HTMLInputElement>(null);
+  const email = useRef<HTMLInputElement>(null);
+  const password = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     getProfile()
@@ -36,7 +37,11 @@ const Login = () => {
       const res = await axiosFetch(constants.GET_PROFILE);
       dispatch(addUser(res.data.data));
     } catch (err) {
-      throw new Error(err.message);
+      if (err instanceof Error) {
+        throw new Error(err.message);
+      } else {
+        throw new Error("An unknown error occurred");
+      }
     }
   };
 
@@ -44,18 +49,35 @@ const Login = () => {
     const userName = name?.current?.value;
     const userEmail = email?.current?.value;
     const userPassword = password?.current?.value;
-    setErrorMessage(formValidation(userName, userEmail, userPassword));
 
-    if (!errorMessage) {
-      if (isLogin) {
-        handleLogin(userEmail, userPassword);
-      } else {
-        handleSingup(userName, userEmail, userPassword);
+    if (!userEmail || !userPassword) {
+      setErrorMessage("Please enter all the details");
+      return;
+    }
+    const error = formValidation(userName, userEmail, userPassword);
+    setErrorMessage(error);
+
+    if (error) {
+      toast.error(error);
+      return;
+    }
+
+    if (isLogin) {
+      handleLogin(userEmail, userPassword);
+    } else {
+      if (!userName) {
+        setErrorMessage("Please enter your name");
+        return;
       }
+      handleSingup(userName, userEmail, userPassword);
     }
   };
 
-  const handleSingup = async (name, email, password) => {
+  const handleSingup = async (
+    name: string,
+    email: string,
+    password: string
+  ) => {
     try {
       const res = await axiosFetch.post(constants.SIGN_UP, {
         name,
@@ -65,18 +87,26 @@ const Login = () => {
       dispatch(addUser(res.data.data));
       navigate("/chat");
     } catch (err) {
-      toast.error(err.response.data.msg);
+      if (err instanceof AxiosError) {
+        toast.error(err.response?.data.msg || "Something went wrong!");
+      } else {
+        toast.error("An unknown error occurred");
+      }
     }
   };
 
-  const handleLogin = async (email, password) => {
+  const handleLogin = async (email: string, password: string) => {
     try {
       const res = await axiosFetch.post(constants.LOGIN, { email, password });
       console.log(res);
       dispatch(addUser(res.data.data));
       navigate("/chat");
     } catch (err) {
-      toast.error(err.response.data.msg);
+      if (err instanceof AxiosError) {
+        toast.error(err.response?.data.msg || "Something went wrong!");
+      } else {
+        toast.error("An unknown error occurred");
+      }
     }
   };
 

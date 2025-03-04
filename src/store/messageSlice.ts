@@ -1,9 +1,18 @@
+import { Attachment } from "@/types/store";
 import { createSlice } from "@reduxjs/toolkit";
+
+type Reply = {
+  messageId: string;
+  senderId: string;
+  name: string;
+  content: string;
+  attachment: Attachment | null;
+} | null;
 
 const messageSlice = createSlice({
   name: "message",
   initialState: {
-    reply: null,
+    reply: null as Reply,
   },
   reducers: {
     setReply: (state, action) => {
