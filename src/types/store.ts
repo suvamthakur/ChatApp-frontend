@@ -9,6 +9,7 @@ export type Chat = {
   _id: string;
   admin: string;
   isGroup: boolean;
+  isBot: boolean;
   groupImage: string;
   groupName: string;
   blockedBy: string | null;

@@ -26,6 +26,7 @@ import { setActiveChatId } from "@/store/appSlice";
 import { RootState } from "@/store/appStore";
 import { Chat } from "@/types/store";
 import { AxiosError } from "axios";
+import { addMessage } from "@/store/chatSlice";
 
 const ChatContainer = () => {
   let WIDTH = window.innerWidth;
@@ -36,6 +37,7 @@ const ChatContainer = () => {
   const [text, setText] = useState("");
   const [isOption, setIsOption] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isAIresponse, setIsAIresponse] = useState(false);
 
   const activeChatId = useSelector(
     (store: RootState) => store.app.activeChatId
@@ -118,12 +120,32 @@ const ChatContainer = () => {
         constants.CREATE_MESSAGE + `/${activeChatId}`,
         formData
       );
-
-      console.log(message?.data?.data);
-
       socket.emit("new_message", message?.data?.data);
+
+      if (chatDetails?.isBot == true) {
+        setIsAIresponse(true);
+        getAIresponse(message?.data?.data.content, activeChatId!);
+      }
     } catch {
       toast.error("Something went wrong");
+    }
+  };
+
+  const getAIresponse = async (message: string, activeChatId: string) => {
+    try {
+      const res = await axiosFetch.post(
+        constants.GET_AI_RESPONSE + `/${activeChatId}`,
+        { content: message }
+      );
+
+      setIsAIresponse(false);
+      dispatch(addMessage(res?.data?.data));
+    } catch (err) {
+      if (err instanceof AxiosError) {
+        toast.error(err?.response?.data?.msg);
+      } else {
+        toast.error("Something went wrong");
+      }
     }
   };
 
@@ -274,71 +296,73 @@ const ChatContainer = () => {
               )}
             </div>
 
-            <Popover open={isOption} onOpenChange={setIsOption}>
-              <PopoverTrigger asChild>
-                <button
-                  className="ml-auto"
-                  onClick={(e) => e.stopPropagation()}
+            {!chatDetails.isBot && (
+              <Popover open={isOption} onOpenChange={setIsOption}>
+                <PopoverTrigger asChild>
+                  <button
+                    className="ml-auto"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <BsThreeDotsVertical className="text-zinc-300 text-4xl mr-4 py-2 rounded-full hover:bg-zinc-700 cursor-pointer" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="end"
+                  className="z-50 mt-1 cursor-pointer bg-red-600 rounded"
+                  onClick={(e) => {
+                    //otherWise chatController will be opened
+                    e.stopPropagation();
+                    setIsOption(false);
+                  }}
                 >
-                  <BsThreeDotsVertical className="text-zinc-300 text-4xl mr-4 py-2 rounded-full hover:bg-zinc-700 cursor-pointer" />
-                </button>
-              </PopoverTrigger>
-              <PopoverContent
-                align="end"
-                className="z-50 mt-1 cursor-pointer bg-red-600 rounded"
-                onClick={(e) => {
-                  //otherWise chatController will be opened
-                  e.stopPropagation();
-                  setIsOption(false);
-                }}
-              >
-                <div className="flex items-center text-zinc-200 font-medium w-full py-1.5">
-                  {!isGroup ? (
-                    <>
-                      {!blockedBy && (
-                        <div
-                          className="py-1 px-3 flex items-center"
-                          onClick={() => handleBlockUser(chatDetails._id)}
-                        >
-                          <MdBlock className="text-xl" />
-                          <span className="ml-2">Block</span>
-                        </div>
-                      )}
+                  <div className="flex items-center text-zinc-200 font-medium w-full py-1.5">
+                    {!isGroup ? (
+                      <>
+                        {!blockedBy && (
+                          <div
+                            className="py-1 px-3 flex items-center"
+                            onClick={() => handleBlockUser(chatDetails._id)}
+                          >
+                            <MdBlock className="text-xl" />
+                            <span className="ml-2">Block</span>
+                          </div>
+                        )}
 
-                      {blockedBy == user._id && (
-                        <div
-                          className="py-1 px-3 flex items-center"
-                          onClick={() => handleUnblockUser(chatDetails._id)}
-                        >
-                          <CgUnblock className="text-xl" />
-                          <span className="ml-2">Unblock</span>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      {user._id == admin ? (
-                        <div
-                          className="py-1 px-3 flex items-center"
-                          onClick={() => handleDeleteGroup(chatDetails._id)}
-                        >
-                          <MdDelete className="text-2xl" />
-                          <span className="ml-2">Delete group</span>
-                        </div>
-                      ) : (
-                        <div
-                          className="py-1 px-3 flex items-center"
-                          onClick={() => handleExitGroup(chatDetails._id)}
-                        >
-                          <IoMdExit className="text-xl" />
-                          <span className="ml-2">Exit group</span>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              </PopoverContent>
-            </Popover>
+                        {blockedBy == user._id && (
+                          <div
+                            className="py-1 px-3 flex items-center"
+                            onClick={() => handleUnblockUser(chatDetails._id)}
+                          >
+                            <CgUnblock className="text-xl" />
+                            <span className="ml-2">Unblock</span>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {user._id == admin ? (
+                          <div
+                            className="py-1 px-3 flex items-center"
+                            onClick={() => handleDeleteGroup(chatDetails._id)}
+                          >
+                            <MdDelete className="text-2xl" />
+                            <span className="ml-2">Delete group</span>
+                          </div>
+                        ) : (
+                          <div
+                            className="py-1 px-3 flex items-center"
+                            onClick={() => handleExitGroup(chatDetails._id)}
+                          >
+                            <IoMdExit className="text-xl" />
+                            <span className="ml-2">Exit group</span>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
 
           {/* Message Container */}
@@ -355,6 +379,14 @@ const ChatContainer = () => {
                 scrollMessage={scrollMessage}
               />
             ))}
+
+            {/* AI response animation */}
+
+            {isAIresponse && (
+              <div className="my-2">
+                <div className="flex dot-flashing"></div>
+              </div>
+            )}
           </div>
 
           {/* Send Message */}
@@ -522,7 +554,7 @@ const ChatContainer = () => {
       user && (
         <div className="h-[100vh] flex items-center justify-center">
           <div className="text-center text-3xl px-4 font-medium text-zinc-200">
-            <h1 className="mb-3">Hi, {user.name}</h1>
+            <h1 className="mb-3">Hi {user.name}</h1>
             <h1>Welcome to another chat application</h1>
           </div>
         </div>

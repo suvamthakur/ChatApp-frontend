@@ -22,7 +22,7 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
   ({ messageInfo, chatDetails, scrollMessage }, ref) => {
     const { senderId, photoURL, content, name, replyTo, attachment } =
       messageInfo;
-    const { isGroup } = chatDetails;
+    const { isGroup, isBot } = chatDetails;
 
     const dispatch = useDispatch();
     const [isMyMessage, setIsMyMessage] = useState(false);
@@ -212,7 +212,7 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
                   >
                     Reply
                   </p>
-                  {(isMyMessage || senderId == user._id) && (
+                  {(isMyMessage || senderId == user._id || isBot) && (
                     <p
                       className="py-2 px-5 hover:bg-zinc-900"
                       onClick={() => handleDeleteMessage()}

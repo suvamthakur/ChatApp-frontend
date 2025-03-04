@@ -162,7 +162,7 @@ const ChatPanel = ({ showCreateChatModal }: ChatPanelProps) => {
             />
           </div>
         </div>
-        <div className="mt-3 flex-grow overflow-y-auto">
+        <div className="mt-3 flex-grow overflow-y-auto custom-scrollbar">
           {chats.length > 0 &&
             chats.map((chat, i) => (
               <div
