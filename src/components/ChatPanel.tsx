@@ -20,7 +20,7 @@ import {
 import CreateChatModal from "./modals/CreateChatModal";
 import ImageUploadModal from "./modals/ImageUploadModal";
 import { RootState } from "@/store/appStore";
-import { Chat, User } from "@/types/store";
+import { Chat } from "@/types/store";
 
 type ChatPanelProps = {
   showCreateChatModal: boolean;

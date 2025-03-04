@@ -1,4 +1,3 @@
-import PropTypes from "prop-types";
 import { forwardRef, useContext, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { IoIosArrowDown } from "react-icons/io";
@@ -8,7 +7,7 @@ import { constants } from "@/lib/constants";
 import toast from "react-hot-toast";
 import { FaFilePdf } from "react-icons/fa";
 import socketContext from "@/lib/socketContext";
-import { Chat, ChatMessage, User } from "@/types/store";
+import { Chat, ChatMessage } from "@/types/store";
 import { RootState } from "@/store/appStore";
 import { AxiosError } from "axios";
 

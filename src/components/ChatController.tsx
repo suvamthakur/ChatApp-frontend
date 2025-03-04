@@ -1,5 +1,4 @@
 import { IoClose } from "react-icons/io5";
-import PropTypes from "prop-types";
 import { useDispatch, useSelector } from "react-redux";
 import { IoMdExit } from "react-icons/io";
 import { MdDelete } from "react-icons/md";
@@ -22,7 +21,7 @@ import { FaEdit } from "react-icons/fa";
 import ImageUploadModal from "./modals/ImageUploadModal";
 import socketContext from "@/lib/socketContext";
 import { RootState } from "@/store/appStore";
-import { Chat, User } from "@/types/store";
+import { Chat } from "@/types/store";
 import { AxiosError } from "axios";
 
 type ChatControllerProps = {
