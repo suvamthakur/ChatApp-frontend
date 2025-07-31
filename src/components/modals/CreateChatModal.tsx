@@ -54,7 +54,7 @@ const CreateChatModal = ({
     let existingConnections: Record<string, User> = {};
 
     for (let chat of allChats) {
-      if (!chat.isGroup) {
+      if (!chat.isGroup && !chat.isBot) {
         const { users } = chat;
 
         for (let user of users) {

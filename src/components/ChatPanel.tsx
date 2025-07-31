@@ -56,13 +56,23 @@ const ChatPanel = ({ showCreateChatModal }: ChatPanelProps) => {
 
   // Search chats
   useEffect(() => {
-    setChats(
-      allChats.filter((chat) =>
+    const groupChats = allChats.filter(
+      (chat) =>
+        (chat.isGroup &&
+          chat.groupName
+            ?.toLowerCase()
+            .includes(searchChat.trim().toLowerCase())) ??
+        false
+    );
+    const userChats = allChats.filter(
+      (chat) =>
+        chat.isGroup === false &&
         chat.users.some((user) =>
           user.name.toLowerCase().includes(searchChat.trim().toLowerCase())
         )
-      )
     );
+
+    setChats([...groupChats, ...userChats]);
   }, [searchChat]);
 
   const getChats = async () => {
