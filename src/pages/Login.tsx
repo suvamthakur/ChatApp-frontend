@@ -5,7 +5,7 @@ import { constants } from "@/lib/constants";
 import { formValidation } from "@/lib/helper/formValidation";
 import { addUser } from "@/store/userSlice";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";

@@ -1,11 +1,8 @@
 import { useContext, useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-
-import Message from "./Message";
+import { useSelector } from "react-redux";
 
 import socketContext from "@/lib/socketContext";
 import { IoArrowBack } from "react-icons/io5";
-import { setActiveChatId } from "@/store/appSlice";
 import { RootState } from "@/store/appStore";
 import { ActionableMessage } from "@/types/store";
 
