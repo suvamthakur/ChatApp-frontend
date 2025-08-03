@@ -180,10 +180,23 @@ const Chat = () => {
             </div>
           )}
 
-          {(pathname.includes("/tasks") || pathname.includes("/events")) && (
+          {pathname.includes("/tasks") || pathname.includes("/events") ? (
             <div className="w-[100vw] sm:w-[60vw] lg:w-[70vw]">
               <ActionableChatContainer />
             </div>
+          ) : (
+            pathname.includes("/actionable") && (
+              <div className="h-[100vh] w-[100vw] sm:w-[60vw] lg:w-[70vw] flex items-center">
+                <div className="text-center mx-auto text-gray-200 text-2xl font-medium bg-zinc-800/30 p-8 rounded-lg shadow-lg backdrop-blur-sm">
+                  <p className="break-words mb-3 animate-fade-in">
+                    Select tasks or events from the sidebar
+                  </p>
+                  <p className="break-words text-gray-300 animate-pulse">
+                    to view your actionable messages!
+                  </p>
+                </div>
+              </div>
+            )
           )}
 
           {((WIDTH < 640 && activeChatId) || WIDTH > 640) &&

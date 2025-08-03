@@ -111,7 +111,7 @@ const ImageUploadModal = ({
   return ReactDOM.createPortal(
     <div className="z-10 p-4 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] bg-zinc-800 rounded-lg">
       <h1 className="text-center text-zinc-300 font-medium text-lg">
-        {/* To identify which component calling this one (chat pannel / chat controller) */}
+        {/* To identify which component calling this one (chat panel / chat controller) */}
         {isGroup ? "Change group Image" : "Change your profile photo"}
       </h1>
       <div className="relative w-40 h-40 mx-auto my-4 border border-zinc-700 rounded p-2 cursor-pointer">

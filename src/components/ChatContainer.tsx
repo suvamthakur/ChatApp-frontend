@@ -127,7 +127,7 @@ const ChatContainer = () => {
   }, [chatMessages, activeChatId]);
 
   const handleSendMessage = async () => {
-    if (!selectedFile && text.length === 0) return;
+    if ((!selectedFile && text.length === 0) || !user || !chatDetails) return;
 
     setText("");
     selectedFile && setSelectedFile(null);
@@ -135,6 +135,31 @@ const ChatContainer = () => {
     // Delete the reply box from the UI
     if (reply) {
       dispatch(deleteReply());
+    }
+
+    // Check If it is a actionable message
+    if (
+      !chatDetails?.isBot &&
+      !chatDetails.isGroup &&
+      (text.trim().startsWith("/task") || text.trim().startsWith("/event"))
+    ) {
+      const targetedUser = chatDetails?.users.filter(
+        (chatUser) => chatUser?._id !== user?._id
+      );
+
+      if (!targetedUser) {
+        toast.error("Something went wrong");
+        return;
+      }
+
+      const payload = {
+        type: text.trim().startsWith("/task") ? "task" : "event",
+        title: text.replace(/^\/(task|event)\s*/, ""),
+        files: selectedFile ? [selectedFile] : [],
+        selectedUsers: targetedUser,
+      };
+      handleSendActionableMessage(payload);
+      return;
     }
 
     try {
@@ -278,7 +303,14 @@ const ChatContainer = () => {
     }
   };
 
-  const handleSendActionableMessage = async () => {
+  const handleSendActionableMessage = async (payload: {
+    type: string;
+    title: string;
+    selectedUsers: User[];
+    description?: string;
+    files?: File[];
+  }) => {
+    const actionablePayload = payload;
     try {
       setIsSendingActionable(true);
       console.log("actionablePayload: ", actionablePayload);
@@ -297,7 +329,7 @@ const ChatContainer = () => {
       formData.append("type", actionablePayload.type);
       formData.append("payload", JSON.stringify(payload));
 
-      if (actionablePayload.files?.length > 0) {
+      if (actionablePayload.files && actionablePayload.files?.length > 0) {
         if (actionablePayload.files.length > MAX_FILES) {
           toast.error(`You can only upload ${MAX_FILES} files`);
           return;
@@ -531,7 +563,7 @@ const ChatContainer = () => {
                     <form
                       onSubmit={(e) => {
                         e.preventDefault();
-                        handleSendActionableMessage();
+                        handleSendActionableMessage(actionablePayload);
                       }}
                     >
                       <DialogTrigger asChild>
@@ -865,7 +897,9 @@ const ChatContainer = () => {
                           <Button
                             type="submit"
                             className="bg-zinc-600 text-white hover:bg-zinc-500 px-6"
-                            onClick={() => handleSendActionableMessage()}
+                            onClick={() =>
+                              handleSendActionableMessage(actionablePayload)
+                            }
                           >
                             {isSendingActionable ? (
                               <p className="animate-pulse [animation-duration:1.1s]">
@@ -911,7 +945,7 @@ const ChatContainer = () => {
                     handleSendMessage();
                   }
                 }}
-                placeholder="Type a message"
+                placeholder="Type /task, /event for Actionable Message"
                 disabled={blockedBy ? true : false}
                 autoFocus
               />
@@ -1046,9 +1080,13 @@ const ChatContainer = () => {
     return (
       user && (
         <div className="h-[100vh] flex items-center justify-center">
-          <div className="text-center text-3xl px-4 font-medium text-zinc-200">
-            <h1 className="mb-3">Hi {user.name}</h1>
-            <h1>Welcome to another chat application</h1>
+          <div className="text-center px-4 animate-fadeIn">
+            <h1 className="mb-2 text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+              Hi {user.name}
+            </h1>
+            <h1 className="text-3xl font-semibold text-zinc-200 animate-pulse">
+              Welcome to WebChat
+            </h1>
           </div>
         </div>
       )
