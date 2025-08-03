@@ -8,7 +8,7 @@ const actionableMessagesSlice = createSlice({
     addActionableMessage: (state, action) => {
       state.push(action.payload);
     },
-    addActionableMessages: (state, action) => {
+    addActionableMessages: (_, action) => {
       return action.payload;
     },
     deleteActionableMessage: (state, action) => {

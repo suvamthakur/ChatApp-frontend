@@ -6,12 +6,9 @@ import { useState } from "react";
 
 import {
   Dialog,
-  DialogClose,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 
 type ActionableMessageCardProps = {
