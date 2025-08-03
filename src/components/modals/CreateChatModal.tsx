@@ -225,7 +225,7 @@ const CreateChatModal = ({
               <img
                 src={preview}
                 alt=""
-                className="w-full h-full object-cover rounded-full"
+                className="w-full h-full object-contain rounded-full"
               />
               <FaEdit className="text-zinc-100 absolute bottom-0 -right-1" />
 
@@ -258,7 +258,7 @@ const CreateChatModal = ({
                 className="relative bg-zinc-800 rounded w-max py-1.5 px-2 flex items-center border"
               >
                 <img
-                  className="w-6 h-6 object-cover rounded-full border"
+                  className="w-6 h-6 object-contain rounded-full border"
                   src={user.photoURL}
                   alt=""
                 />
@@ -292,7 +292,7 @@ const CreateChatModal = ({
             >
               <div className="flex items-center">
                 <img
-                  className="w-8 h-8 object-cover rounded-full border"
+                  className="w-8 h-8 object-contain rounded-full border"
                   src={user.photoURL}
                   alt=""
                 />

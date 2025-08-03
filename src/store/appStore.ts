@@ -3,6 +3,7 @@ import userSlice from "./userSlice";
 import chatSlice from "./chatSlice";
 import appSlice from "./appSlice";
 import messageSlice from "./messageSlice";
+import actionableMessagesSlice from "./actionableMessageSlice";
 
 const appStore = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ const appStore = configureStore({
     user: userSlice,
     chats: chatSlice,
     message: messageSlice,
+    actionableMessages: actionableMessagesSlice,
   },
 });
 

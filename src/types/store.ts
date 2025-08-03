@@ -30,7 +30,7 @@ export type Attachment = {
 export type ChatMessage = {
   _id: string;
   name: string;
-  senderId: string;
+  senderId: User;
   photoURL: string;
   attachment: Attachment | null;
   content: string;
@@ -41,4 +41,21 @@ export type ChatMessage = {
     messageContent: string;
     attachment: Attachment | null;
   } | null;
+};
+
+export type ActionableMessage = {
+  _id: string;
+  senderId: User;
+  chatId: Chat;
+  type: "text" | "event" | "task";
+  content: string;
+  attachment: Attachment | null;
+  payload: {
+    title: string;
+    description?: string;
+    attachments?: Attachment[];
+    targetedUsers: User[];
+  };
+  createdAt: string;
+  updatedAt: string;
 };

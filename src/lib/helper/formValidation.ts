@@ -1,5 +1,5 @@
 export const formValidation = (
-  name = "Abc",
+  name: string = "Abc",
   email: string,
   password: string
 ) => {

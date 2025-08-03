@@ -109,7 +109,12 @@ const chatSlice = createSlice({
 
     // New Message
     addMessage: (state, action) => {
-      const { _id, chatId, senderName, content } = action.payload;
+      const {
+        _id,
+        chatId: { _id: chatId },
+        senderName,
+        content,
+      } = action.payload;
 
       // Add new message
       state.chatMessages = {

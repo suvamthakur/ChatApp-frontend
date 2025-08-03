@@ -19,8 +19,15 @@ type MessageProps = {
 
 const Message = forwardRef<HTMLDivElement, MessageProps>(
   ({ messageInfo, chatDetails, scrollMessage }, ref) => {
-    const { senderId, photoURL, content, name, replyTo, attachment } =
-      messageInfo;
+    console.log("messageInfo", messageInfo);
+    const {
+      senderId: { _id: senderId },
+      photoURL,
+      content,
+      name,
+      replyTo,
+      attachment,
+    } = messageInfo;
     const { isGroup, isBot } = chatDetails;
 
     const dispatch = useDispatch();
@@ -76,7 +83,7 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
             {!isMyMessage && isGroup && (
               <div className="w-8 h-8 rounded-full">
                 <img
-                  className="w-full h-full object-cover rounded-full"
+                  className="w-full h-full object-contain rounded-full"
                   src={photoURL}
                   alt=""
                 />
@@ -111,7 +118,7 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
                           {replyTo.attachment.type.includes("image") && (
                             <img
                               src={replyTo.attachment.url}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-contain"
                               alt=""
                             />
                           )}
@@ -119,7 +126,7 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
                           {replyTo.attachment.type.includes("video") && (
                             <video
                               src={replyTo.attachment.url}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-contain"
                             />
                           )}
 
