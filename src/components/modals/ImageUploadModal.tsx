@@ -115,7 +115,7 @@ const ImageUploadModal = ({
       <div className="relative w-40 h-40 mx-auto my-4 border border-zinc-700 rounded p-2 cursor-pointer">
         <img
           src={preview}
-          className="w-full h-full rounded-full object-cover"
+          className="w-full h-full rounded-full object-contain"
           alt=""
         />
         <FaEdit className="absolute text-zinc-200 text-xl bottom-1 right-1" />

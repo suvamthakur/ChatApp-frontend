@@ -5,7 +5,7 @@ import { constants } from "@/lib/constants";
 import { addUser } from "@/store/userSlice";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { io, Socket } from "socket.io-client";
 import socketContext from "@/lib/socketContext";
 import {
@@ -24,10 +24,13 @@ import { setActiveChatId, setIsGetChats } from "@/store/appSlice";
 import { RootState } from "@/store/appStore";
 import { User } from "@/types/store";
 import { AxiosError } from "axios";
+import ActionableChatContainer from "@/components/ActionableChatContainer";
+import { addActionableMessage } from "@/store/actionableMessageSlice";
 
 const Chat = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { pathname } = useLocation();
 
   const user = useSelector((store: RootState) => store.user);
   const activeChatId = useSelector(
@@ -116,6 +119,10 @@ const Chat = () => {
         dispatch(addMessage(message));
       });
 
+      socket.on("new-actionable-message", (message) => {
+        dispatch(addActionableMessage(message));
+      });
+
       // Delete message
       socket.on("message_deleted", (messageId, chatId) => {
         console.log("message deleted");
@@ -160,7 +167,10 @@ const Chat = () => {
               : "")
           }
         >
-          {((WIDTH < 640 && !activeChatId) || WIDTH > 640) && (
+          {((!activeChatId &&
+            !pathname.includes("/tasks") &&
+            !pathname.includes("/events")) ||
+            WIDTH > 640) && (
             <div
               className={
                 "w-[100vw] sm:w-[40vw] lg:w-[30vw] h-full p-3 bg-zinc-800"
@@ -170,11 +180,18 @@ const Chat = () => {
             </div>
           )}
 
-          {((WIDTH < 640 && activeChatId) || WIDTH > 640) && (
+          {(pathname.includes("/tasks") || pathname.includes("/events")) && (
             <div className="w-[100vw] sm:w-[60vw] lg:w-[70vw]">
-              <ChatContainer />
+              <ActionableChatContainer />
             </div>
           )}
+
+          {((WIDTH < 640 && activeChatId) || WIDTH > 640) &&
+            !pathname.includes("/actionable") && (
+              <div className="w-[100vw] sm:w-[60vw] lg:w-[70vw]">
+                <ChatContainer />
+              </div>
+            )}
         </div>
       </socketContext.Provider>
     )

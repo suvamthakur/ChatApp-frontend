@@ -76,7 +76,7 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
             {!isMyMessage && isGroup && (
               <div className="w-8 h-8 rounded-full">
                 <img
-                  className="w-full h-full object-cover rounded-full"
+                  className="w-full h-full object-contain rounded-full"
                   src={photoURL}
                   alt=""
                 />
@@ -111,7 +111,7 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
                           {replyTo.attachment.type.includes("image") && (
                             <img
                               src={replyTo.attachment.url}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-contain"
                               alt=""
                             />
                           )}
@@ -119,7 +119,7 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
                           {replyTo.attachment.type.includes("video") && (
                             <video
                               src={replyTo.attachment.url}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-contain"
                             />
                           )}
 

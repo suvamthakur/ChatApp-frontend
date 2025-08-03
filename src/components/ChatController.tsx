@@ -122,7 +122,7 @@ const ChatController = ({
             }}
           >
             <img
-              className="w-full h-full object-cover rounded-full"
+              className="w-full h-full object-contain rounded-full"
               src={groupImage}
               alt=""
             />
@@ -222,7 +222,7 @@ const ChatController = ({
             <div key={userDetails._id} className="flex py-2.5 relative">
               <div className="w-9 h-9 rounded-full">
                 <img
-                  className="w-full h-full object-cover rounded-full"
+                  className="w-full h-full object-contain rounded-full"
                   src={userDetails.photoURL}
                   alt=""
                 />

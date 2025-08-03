@@ -42,3 +42,20 @@ export type ChatMessage = {
     attachment: Attachment | null;
   } | null;
 };
+
+export type ActionableMessage = {
+  _id: string;
+  senderId: User;
+  chatId: Chat;
+  type: "text" | "event" | "task";
+  content: string;
+  attachment: Attachment | null;
+  payload: {
+    title: string;
+    description?: string;
+    attachments?: Attachment[];
+    targetedUsers: string[];
+  };
+  createdAt: string;
+  updatedAt: string;
+};

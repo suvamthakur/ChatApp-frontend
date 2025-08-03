@@ -5,6 +5,8 @@ export const constants = {
   SIGN_UP: "auth/signup",
   LOGIN: "auth/login",
   LOGOUT: "auth/logout",
+  VERIFY_OTP_SIGNUP: "auth/verify-otp/signup",
+  SEND_OTP: "auth/send-otp",
 
   // User
   GET_PROFILE: "user/profile",
@@ -26,4 +28,5 @@ export const constants = {
   CREATE_MESSAGE: "message/create",
   DELETE_MESSAGE: "message/delete",
   GET_AI_RESPONSE: "message/ai",
+  GET_ACTIONABLE_MESSAGES: "message/actionables",
 };
