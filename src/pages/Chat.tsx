@@ -116,10 +116,14 @@ const Chat = () => {
 
       // New message
       socket.on("new-message", (message) => {
+        console.log("new message received");
+        console.log(message);
         dispatch(addMessage(message));
       });
 
       socket.on("new-actionable-message", (message) => {
+        console.log("new actionable message received");
+        console.log(message);
         dispatch(addActionableMessage(message));
       });
 

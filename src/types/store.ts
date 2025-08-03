@@ -30,7 +30,7 @@ export type Attachment = {
 export type ChatMessage = {
   _id: string;
   name: string;
-  senderId: string;
+  senderId: User;
   photoURL: string;
   attachment: Attachment | null;
   content: string;

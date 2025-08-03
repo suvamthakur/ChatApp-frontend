@@ -19,8 +19,15 @@ type MessageProps = {
 
 const Message = forwardRef<HTMLDivElement, MessageProps>(
   ({ messageInfo, chatDetails, scrollMessage }, ref) => {
-    const { senderId, photoURL, content, name, replyTo, attachment } =
-      messageInfo;
+    console.log("messageInfo", messageInfo);
+    const {
+      senderId: { _id: senderId },
+      photoURL,
+      content,
+      name,
+      replyTo,
+      attachment,
+    } = messageInfo;
     const { isGroup, isBot } = chatDetails;
 
     const dispatch = useDispatch();
