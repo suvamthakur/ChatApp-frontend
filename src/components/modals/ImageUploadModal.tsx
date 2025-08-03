@@ -2,13 +2,14 @@ import { axiosFetch } from "@/lib/axiosFetch";
 import { constants } from "@/lib/constants";
 import socketContext from "@/lib/socketContext";
 import { setIsImageUpload } from "@/store/appSlice";
+import { RootState } from "@/store/appStore";
 import { addUser, removeUser } from "@/store/userSlice";
 import { AxiosError } from "axios";
 import { useContext, useState } from "react";
 import ReactDOM from "react-dom";
 import toast from "react-hot-toast";
 import { FaEdit } from "react-icons/fa";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 type ImageUploadProps = {
   isGroup?: boolean;
@@ -26,6 +27,7 @@ const ImageUploadModal = ({
   const dispatch = useDispatch();
   const [preview, setPreview] = useState(image);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const user = useSelector((state: RootState) => state.user);
 
   let { socket } = useContext(socketContext);
   socket = socket!;
@@ -107,7 +109,7 @@ const ImageUploadModal = ({
   };
 
   return ReactDOM.createPortal(
-    <div className="z-10 px-3 pt-2 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] bg-zinc-800 rounded">
+    <div className="z-10 p-4 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] bg-zinc-800 rounded-lg">
       <h1 className="text-center text-zinc-300 font-medium text-lg">
         {/* To identify which component calling this one (chat pannel / chat controller) */}
         {isGroup ? "Change group Image" : "Change your profile photo"}
@@ -127,6 +129,12 @@ const ImageUploadModal = ({
           accept="image/*"
         />
       </div>
+
+      {!isGroup && user && (
+        <p className="font-semibold text-gray-200 text-lg text-center mb-4">
+          {user.name}
+        </p>
+      )}
 
       <div className="flex justify-between gap-x-1.5 text-zinc-300 font-medium">
         <button

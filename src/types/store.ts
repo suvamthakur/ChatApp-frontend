@@ -54,7 +54,7 @@ export type ActionableMessage = {
     title: string;
     description?: string;
     attachments?: Attachment[];
-    targetedUsers: string[];
+    targetedUsers: User[];
   };
   createdAt: string;
   updatedAt: string;

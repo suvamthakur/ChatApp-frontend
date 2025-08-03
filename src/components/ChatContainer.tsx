@@ -7,7 +7,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@radix-ui/react-popover";
-import { IoMdExit } from "react-icons/io";
+import { IoIosSearch, IoMdExit } from "react-icons/io";
 import { MdDelete } from "react-icons/md";
 import { BiSend } from "react-icons/bi";
 import Message from "./Message";
@@ -52,6 +52,7 @@ const ChatContainer = () => {
   const [isOption, setIsOption] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isAIresponse, setIsAIresponse] = useState(false);
+  const [searchMessage, setSearchMessage] = useState("");
 
   // Actionable Message
   const [isSendingActionable, setIsSendingActionable] = useState(false);
@@ -339,128 +340,163 @@ const ChatContainer = () => {
       chatDetails;
 
     // Get all messages for the activeChat/currentChat
-    const messages = chatMessages[activeChatId];
+    let messages = chatMessages[activeChatId];
+
+    // Filter
+    if (searchMessage) {
+      messages = messages.filter((msg) => {
+        const hasMatchingUser = msg.name
+          .toLowerCase()
+          .includes(searchMessage.toLowerCase());
+
+        const hasMatchingContent = msg.content
+          .toLowerCase()
+          .includes(searchMessage.toLowerCase());
+
+        return hasMatchingUser || hasMatchingContent;
+      });
+    }
 
     return (
       user && (
         <>
           <div className="h-[100vh] w-full sm:ml-[1px] flex flex-col">
             <div
-              className="flex items-center bg-zinc-800 px-2 sm:px-4 h-14 py-3 cursor-pointer"
+              className="flex items-center justify-between bg-zinc-800 px-2 sm:px-4 h-14 py-3 cursor-pointer"
               onClick={() => {
                 setIsControllerActive(true);
               }}
             >
-              {WIDTH < 640 && activeChatId && (
-                <IoArrowBack
-                  className="text-gray-400 text-2xl mr-3"
-                  onClick={() => dispatch(setActiveChatId(null))}
-                />
-              )}
+              <div className="flex items-center gap-2">
+                {WIDTH < 640 && activeChatId && (
+                  <IoArrowBack
+                    className="text-gray-400 text-2xl mr-3"
+                    onClick={() => dispatch(setActiveChatId(null))}
+                  />
+                )}
 
-              <div className="w-10 h-10 rounded-full">
-                <img
-                  className="w-full h-full object-contain rounded-full"
-                  src={
-                    isGroup
-                      ? groupImage
-                      : user._id == admin
-                      ? users[0].photoURL
-                      : users[1].photoURL // admin's image
-                  }
-                  alt=""
-                />
+                <div className="w-10 h-10 rounded-full">
+                  <img
+                    className="w-full h-full object-contain rounded-full"
+                    src={
+                      isGroup
+                        ? groupImage
+                        : user._id == admin
+                        ? users[0].photoURL
+                        : users[1].photoURL // admin's image
+                    }
+                    alt=""
+                  />
+                </div>
+                <div className="ml-2">
+                  <p className="text-zinc-200 font-medium">
+                    {
+                      isGroup
+                        ? groupName
+                        : user._id == admin
+                        ? users[0].name
+                        : users[1].name // admin's name
+                    }
+                  </p>
+                  {isGroup && (
+                    <div className="text-sm text-zinc-400">
+                      {users.map((userDetails) => (
+                        <span key={userDetails._id}>
+                          {userDetails._id !== user._id &&
+                            userDetails.name + ", "}
+                        </span>
+                      ))}
+                      <span>You</span>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="ml-2">
-                <p className="text-zinc-200 font-medium">
-                  {
-                    isGroup
-                      ? groupName
-                      : user._id == admin
-                      ? users[0].name
-                      : users[1].name // admin's name
-                  }
-                </p>
-                {isGroup && (
-                  <div className="text-sm text-zinc-400">
-                    {users.map((userDetails) => (
-                      <span key={userDetails._id}>
-                        {userDetails._id !== user._id &&
-                          userDetails.name + ", "}
-                      </span>
-                    ))}
-                    <span>You</span>
-                  </div>
+
+              <div className="flex items-center gap-2">
+                <div className="flex items-center bg-zinc-700 rounded-md px-2">
+                  <IoIosSearch className="text-gray-400 text-xl" />
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    value={searchMessage}
+                    onChange={(e) => setSearchMessage(e.target.value)}
+                    className="bg-transparent border-none outline-none text-gray-200 px-2 py-1 w-full"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+
+                {!chatDetails.isBot && (
+                  <Popover open={isOption} onOpenChange={setIsOption}>
+                    <PopoverTrigger asChild>
+                      <button
+                        className="ml-auto"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <BsThreeDotsVertical className="text-zinc-300 text-4xl mr-4 py-2 rounded-full hover:bg-zinc-700 cursor-pointer" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      align="end"
+                      className="z-50 mt-1 cursor-pointer bg-red-600 rounded"
+                      onClick={(e) => {
+                        //otherWise chatController will be opened
+                        e.stopPropagation();
+                        setIsOption(false);
+                      }}
+                    >
+                      <div className="flex items-center text-zinc-200 font-medium w-full py-1.5">
+                        {!isGroup ? (
+                          <>
+                            {!blockedBy && (
+                              <div
+                                className="py-1 px-3 flex items-center"
+                                onClick={() => handleBlockUser(chatDetails._id)}
+                              >
+                                <MdBlock className="text-xl" />
+                                <span className="ml-2">Block</span>
+                              </div>
+                            )}
+
+                            {blockedBy == user._id && (
+                              <div
+                                className="py-1 px-3 flex items-center"
+                                onClick={() =>
+                                  handleUnblockUser(chatDetails._id)
+                                }
+                              >
+                                <CgUnblock className="text-xl" />
+                                <span className="ml-2">Unblock</span>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            {user._id == admin ? (
+                              <div
+                                className="py-1 px-3 flex items-center"
+                                onClick={() =>
+                                  handleDeleteGroup(chatDetails._id)
+                                }
+                              >
+                                <MdDelete className="text-2xl" />
+                                <span className="ml-2">Delete group</span>
+                              </div>
+                            ) : (
+                              <div
+                                className="py-1 px-3 flex items-center"
+                                onClick={() => handleExitGroup(chatDetails._id)}
+                              >
+                                <IoMdExit className="text-xl" />
+                                <span className="ml-2">Exit group</span>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 )}
               </div>
-
-              {!chatDetails.isBot && (
-                <Popover open={isOption} onOpenChange={setIsOption}>
-                  <PopoverTrigger asChild>
-                    <button
-                      className="ml-auto"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <BsThreeDotsVertical className="text-zinc-300 text-4xl mr-4 py-2 rounded-full hover:bg-zinc-700 cursor-pointer" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    align="end"
-                    className="z-50 mt-1 cursor-pointer bg-red-600 rounded"
-                    onClick={(e) => {
-                      //otherWise chatController will be opened
-                      e.stopPropagation();
-                      setIsOption(false);
-                    }}
-                  >
-                    <div className="flex items-center text-zinc-200 font-medium w-full py-1.5">
-                      {!isGroup ? (
-                        <>
-                          {!blockedBy && (
-                            <div
-                              className="py-1 px-3 flex items-center"
-                              onClick={() => handleBlockUser(chatDetails._id)}
-                            >
-                              <MdBlock className="text-xl" />
-                              <span className="ml-2">Block</span>
-                            </div>
-                          )}
-
-                          {blockedBy == user._id && (
-                            <div
-                              className="py-1 px-3 flex items-center"
-                              onClick={() => handleUnblockUser(chatDetails._id)}
-                            >
-                              <CgUnblock className="text-xl" />
-                              <span className="ml-2">Unblock</span>
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          {user._id == admin ? (
-                            <div
-                              className="py-1 px-3 flex items-center"
-                              onClick={() => handleDeleteGroup(chatDetails._id)}
-                            >
-                              <MdDelete className="text-2xl" />
-                              <span className="ml-2">Delete group</span>
-                            </div>
-                          ) : (
-                            <div
-                              className="py-1 px-3 flex items-center"
-                              onClick={() => handleExitGroup(chatDetails._id)}
-                            >
-                              <IoMdExit className="text-xl" />
-                              <span className="ml-2">Exit group</span>
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              )}
             </div>
 
             {/* Message Container */}
