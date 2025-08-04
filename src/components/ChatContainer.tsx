@@ -1011,7 +1011,11 @@ const ChatContainer = () => {
                     handleSendMessage();
                   }
                 }}
-                placeholder="Type /task, /event for Actionable Message"
+                placeholder={
+                  !chatDetails.isGroup && !chatDetails.isBot
+                    ? "Type /task, /event for Actionable Message"
+                    : "Type a message..."
+                }
                 disabled={blockedBy ? true : false}
                 autoFocus
               />
