@@ -131,9 +131,12 @@ const ImageUploadModal = ({
       </div>
 
       {!isGroup && user && (
-        <p className="font-semibold text-gray-200 text-lg text-center mb-4">
-          {user.name}
-        </p>
+        <div className="mb-4">
+          <p className="font-semibold text-gray-200 text-lg text-center">
+            {user.name}
+          </p>
+          <p className="text-gray-300 text-center mt-1">{user.email}</p>
+        </div>
       )}
 
       <div className="flex justify-between gap-x-1.5 text-zinc-300 font-medium">

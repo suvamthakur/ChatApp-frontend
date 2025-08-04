@@ -44,6 +44,7 @@ import { Input } from "@/components/ui/input";
 const MAX_FILES = 5;
 const ChatContainer = () => {
   let WIDTH = window.innerWidth;
+  const [isOtherUserOnline, setIsOtherUserOnline] = useState(false);
 
   const dispatch = useDispatch();
   const [chatDetails, setChatDetails] = useState<Chat | null>(null);
@@ -83,8 +84,62 @@ const ChatContainer = () => {
   let { socket } = useContext(socketContext);
   socket = socket!;
 
-  const messageRef = useRef<Record<string, HTMLDivElement | null>>({});
+  useEffect(() => {
+    if (
+      !socket ||
+      !chatDetails ||
+      chatDetails.isGroup ||
+      !user ||
+      !activeChatId
+    ) {
+      setIsOtherUserOnline(false);
+      return;
+    }
 
+    const otherUser = chatDetails.users.find((u) => u._id !== user._id);
+    if (otherUser) {
+      socket.emit(
+        "check_online_status",
+        otherUser._id,
+        (response: Record<string, any>) => {
+          setIsOtherUserOnline(response.isOnline);
+        }
+      );
+    }
+  }, [activeChatId, chatDetails, user, socket]);
+
+  // Track real-time status updates
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleUserOnline = (onlineUserId: string) => {
+      if (!chatDetails || chatDetails.isGroup || !user) return;
+
+      const otherUser = chatDetails.users.find((u) => u._id !== user._id);
+      if (otherUser && otherUser._id === onlineUserId) {
+        setIsOtherUserOnline(true);
+      }
+    };
+
+    const handleUserOffline = (offlineUserId: string) => {
+      if (!chatDetails || chatDetails.isGroup || !user) return;
+      const otherUser = chatDetails.users.find((u) => u._id !== user._id);
+
+      if (otherUser && otherUser._id === offlineUserId) {
+        setIsOtherUserOnline(false);
+      }
+    };
+
+    socket.on("user-online", handleUserOnline);
+    socket.on("user-offline", handleUserOffline);
+
+    return () => {
+      socket.off("user-online", handleUserOnline);
+      socket.off("user-offline", handleUserOffline);
+    };
+  }, [socket, chatDetails, user]);
+
+  const messageRef = useRef<Record<string, HTMLDivElement | null>>({});
   const inputFocus = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     if (activeChatId && allChats) {
@@ -377,7 +432,7 @@ const ChatContainer = () => {
     // Filter
     if (searchMessage) {
       messages = messages.filter((msg) => {
-        const hasMatchingUser = msg.name
+        const hasMatchingUser = (msg.senderId?.name || "")
           .toLowerCase()
           .includes(searchMessage.toLowerCase());
 
@@ -430,6 +485,17 @@ const ChatContainer = () => {
                         : users[1].name // admin's name
                     }
                   </p>
+                  {!isGroup && (
+                    <p className="text-xs text-zinc-400">
+                      {isOtherUserOnline && (
+                        <div className="flex items-center gap-1">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span>Online</span>
+                        </div>
+                      )}
+                    </p>
+                  )}
+
                   {isGroup && (
                     <div className="text-sm text-zinc-400">
                       {users.map((userDetails) => (
