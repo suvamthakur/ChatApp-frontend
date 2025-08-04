@@ -90,7 +90,9 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
               </div>
             )}
             <div
-              className="relative bg-zinc-800 px-2 py-1.5 ml-1.5 rounded-tl-sm rounded-bl-xl rounded-tr-xl rounded-br-sm cursor-pointer"
+              className={`relative bg-zinc-800 px-2 py-1.5 ml-1.5 rounded-bl-lg  rounded-br-lg cursor-pointer  ${
+                isMyMessage ? "rounded-tl-lg" : " rounded-tr-lg"
+              }`}
               onMouseEnter={() => setShowArrow(true)}
               onMouseLeave={() => setShowArrow(false)}
             >
