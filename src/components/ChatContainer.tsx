@@ -432,7 +432,7 @@ const ChatContainer = () => {
     // Filter
     if (searchMessage) {
       messages = messages.filter((msg) => {
-        const hasMatchingUser = msg.name
+        const hasMatchingUser = (msg.senderId?.name || "")
           .toLowerCase()
           .includes(searchMessage.toLowerCase());
 

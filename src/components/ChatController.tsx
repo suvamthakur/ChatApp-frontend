@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { MdPersonAddAlt1 } from "react-icons/md";
 import CreateChatModal from "./modals/CreateChatModal";
 import { setIsImageUpload, setShowCreateChatModal } from "@/store/appSlice";
@@ -33,6 +33,10 @@ const ChatController = ({
   chatDetails,
   setIsControllerActive,
 }: ChatControllerProps) => {
+  const [onlineMembers, setOnlineMembers] = useState<Record<string, boolean>>(
+    {}
+  );
+
   const { groupImage, groupName, users, admin } = chatDetails;
 
   const dispatch = useDispatch();
@@ -51,6 +55,34 @@ const ChatController = ({
 
   let { socket } = useContext(socketContext);
   socket = socket!;
+
+  useEffect(() => {
+    if (!socket || !chatDetails?._id) return;
+
+    socket.emit(
+      "check_group_status",
+      chatDetails._id,
+      (usersStatus: typeof onlineMembers) => {
+        setOnlineMembers(usersStatus);
+      }
+    );
+
+    // Real-time updates
+    const handleUserOnline = (userId: string) => {
+      setOnlineMembers((prev) => ({ ...prev, [userId]: true }));
+    };
+    const handleUserOffline = (userId: string) => {
+      setOnlineMembers((prev) => ({ ...prev, [userId]: false }));
+    };
+
+    socket.on("user-online", handleUserOnline);
+    socket.on("user-offline", handleUserOffline);
+
+    return () => {
+      socket.off("user-online", handleUserOnline);
+      socket.off("user-offline", handleUserOffline);
+    };
+  }, [socket, chatDetails?._id]);
 
   const handleExitGroup = async () => {
     try {
@@ -227,9 +259,19 @@ const ChatController = ({
                   alt=""
                 />
               </div>
-              <p className="text-lg text-zinc-300 ml-3 mt-0.5">
-                {userDetails._id == currentUser._id ? "You" : userDetails.name}
-              </p>
+
+              <div className="flex items-center gap-2">
+                <p className="text-lg text-zinc-300 ml-3">
+                  {userDetails._id == currentUser._id
+                    ? "You"
+                    : userDetails.name}
+                </p>
+
+                {onlineMembers[userDetails._id] &&
+                  userDetails._id != currentUser._id && (
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  )}
+              </div>
 
               {/* Admin */}
               {userDetails._id == admin && (
