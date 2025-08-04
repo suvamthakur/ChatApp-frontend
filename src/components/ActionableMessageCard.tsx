@@ -42,8 +42,8 @@ export default function ActionableMessageCard({
     user && (
       <div
         className={`${
-          isMyMessage ? "ml-auto" : " "
-        } md:w-[40%] bg-zinc-800 rounded-lg shadow-md`}
+          isMyMessage ? "ml-auto rounded-tl-lg" : "rounded-tr-lg"
+        } md:w-[40%] bg-zinc-800 rounded-bl-lg  rounded-br-lg shadow-md`}
       >
         {/* Header */}
         <div
